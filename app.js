@@ -36,20 +36,48 @@ function plain(x) {
   return x.error || 'Couldnt check this one automatically'
 }
 
+const FROM_CODE = { p: 'pass', a: 'partial', f: 'fail', u: 'untestable' }
+const day = d => new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d))
+
+// One bar per run, oldest first; the newest is this run. Tap or hover a bar for its date and status.
+function runHistory(x, data) {
+  const runs = (data.history?.runs || []).map((d, i) => [d, FROM_CODE[(data.history.ext[x.id] || '')[i]] || null])
+  runs.push([data.sweepDate, x.status])
+  const checked = runs.filter(([, st]) => st && st !== 'untestable')
+  const working = checked.filter(([, st]) => st === 'pass').length
+  const readout = el('span', { class: 'readout' })
+  const show = ([d, st]) => { readout.textContent = `${day(d)}: ${st ? LABEL[st] : 'not checked'}` }
+  const bars = el('div', { class: 'bars', role: 'list' }, ...runs.map(r => {
+    const label = `${day(r[0])}: ${r[1] ? LABEL[r[1]] : 'not checked'}`
+    const b = el('span', { class: `bar ${r[1] || 'none'}`, role: 'listitem', tabindex: '0', title: label, 'aria-label': label })
+    for (const ev of ['mouseenter', 'focus', 'click']) b.addEventListener(ev, () => show(r))
+    return b
+  }))
+  show(runs[runs.length - 1])
+  const summary = checked.length
+    ? `Working in ${working} of ${checked.length} ${checked.length === 1 ? 'check' : 'checks'}`
+    : 'Not checked yet'
+  return el('div', { class: 'history' }, el('div', { class: 'hhead' }, el('span', {}, 'History'), el('span', { class: 'muted' }, summary)), bars, readout)
+}
+
 function technical(x) {
+  const hist = DATA ? runHistory(x, DATA) : null
   const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
   if (x.checkedWith) rows.push(['Checked with', x.checkedWith])
   if (x.checked) rows.push(['Checked', when(x.checked)])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
   const dl = el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
-  if (!x.ops?.length) return dl
+  if (!x.ops?.length) return el('div', {}, ...(hist ? [hist] : []), dl)
   const ops = el('ul', { class: 'ops' }, ...x.ops.map(o => el('li', {},
     el('span', { class: `dot ${o.status === 'skip' ? 'skip' : o.status === 'untestable' ? 'untestable' : o.status}` }),
     el('span', { class: 'op' }, OPS[o.op]?.[0] || o.op),
     el('span', { class: `opstatus ${o.status}` }, OP_STATUS[o.status] || o.status),
     ...(o.error || o.reason ? [el('span', { class: 'operr' }, o.error || o.reason)] : []))))
-  return el('div', {}, ops, dl)
+  return el('div', {}, ...(hist ? [hist] : []), ops, dl)
 }
+
+// render() fills this in, so technical details can reach the run history.
+let DATA = null
 
 const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
 
@@ -89,6 +117,7 @@ function showHash() {
 }
 
 function render(data) {
+  DATA = data
   const run = data.inProgress
   $('#meta').textContent = run
     ? `Run in progress, ${run.done} of ${run.total} checked so far, updated ${when(data.generated)} (main @ ${data.keiCommit.slice(0, 10)})`

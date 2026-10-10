@@ -1,12 +1,12 @@
 :root {
   color-scheme: light dark;
   --bg: #ffffff; --fg: #18181b; --muted: #71717a; --line: #ececee; --soft: #f4f4f5; --focus: #a1a1aa;
-  --pass: #16a34a; --partial: #d97706; --fail: #dc2626; --untestable: #a1a1aa;
+  --pass: #0ca30c; --partial: #fab219; --partial-text: #8a5a00; --fail: #d03b3b; --untestable: #a1a1aa;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #101012; --fg: #ececee; --muted: #8b8b94; --line: #222226; --soft: #1a1a1d; --focus: #52525b;
-    --pass: #4ade80; --partial: #fbbf24; --fail: #f87171; --untestable: #71717a;
+    --pass: #0ca30c; --partial: #fab219; --partial-text: #fab219; --fail: #d03b3b; --untestable: #71717a;
   }
 }
 * { box-sizing: border-box; }
@@ -73,7 +73,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .more summary { list-style: none; display: flex; justify-content: space-between; gap: 12px; cursor: pointer; color: var(--muted); }
 .more summary::-webkit-details-marker { display: none; }
 .plain.fail { color: var(--fail); }
-.plain.partial { color: var(--partial); }
+.plain.partial { color: var(--partial-text); }
 .error { margin-top: 4px; color: var(--muted); font: .78rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 .toggle { flex: none; font-size: .8rem; opacity: .7; }
 .toggle::after { content: " ▸"; }
@@ -111,3 +111,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 
 .hidden-hint { margin: -2px 0 10px; color: var(--muted); }
 .hidden-hint a { color: var(--fg); }
+
+.history { margin: 10px 0 0; padding: 10px 12px; background: var(--soft); border-radius: 8px; }
+.list li.linked .history { background: var(--bg); }
+.hhead { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.hhead span:first-child { color: var(--fg); }
+.bars { display: flex; gap: 2px; align-items: flex-end; height: 22px; }
+.bar { flex: 0 1 8px; min-width: 3px; height: 100%; border-radius: 2px; cursor: pointer; outline-offset: 2px; }
+.bar.pass { background: var(--pass); } .bar.partial { background: var(--partial); } .bar.fail { background: var(--fail); }
+.bar.untestable { background: var(--untestable); height: 50%; }
+.bar.none { box-shadow: inset 0 0 0 1.5px var(--line); height: 50%; }
+.bar:hover, .bar:focus-visible { outline: 2px solid var(--focus); }
+.readout { display: block; margin-top: 6px; color: var(--muted); font-size: .8rem; }
