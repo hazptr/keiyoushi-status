@@ -106,3 +106,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .ops .operr { color: var(--muted); font: .78rem ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 @media (max-width: 520px) { .ops { grid-template-columns: auto 1fr max-content; } .ops .operr { grid-column: 2 / -1; } }
 .more[open] ~ .error { display: none; } /* the operations list shows them */
+
+.toggle-nsfw { display: inline-flex; align-items: center; gap: 6px; margin: -4px 0 14px; color: var(--muted); cursor: pointer; user-select: none; }
+.toggle-nsfw input { width: 15px; height: 15px; margin: 0; accent-color: var(--fg); cursor: pointer; }

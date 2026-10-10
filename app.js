@@ -73,6 +73,7 @@ function showHash() {
   document.querySelectorAll('li.linked').forEach(l => l.classList.remove('linked'))
   const li = document.getElementById(decodeURIComponent(location.hash.slice(1)))
   if (!li) return
+  if (li.dataset.nsfw === '1' && !document.getElementById('nsfw').checked) document.getElementById('nsfw').click()
   li.hidden = false
   li.querySelector('details').open = true
   li.classList.remove('flash')
@@ -87,29 +88,30 @@ function render(data) {
     ? `Run in progress, ${run.done} of ${run.total} checked so far (main @ ${data.keiCommit.slice(0, 10)})`
     : `Last run ${data.sweepDate} on main @ ${data.keiCommit.slice(0, 10)}`
 
-  const { newlyFailing = [], nowPassing = [] } = data.changes || {}
-  if (newlyFailing.length || nowPassing.length) {
+  const nsfwIds = new Set(data.extensions.filter(x => x.contentWarning === 'NSFW').map(x => x.id))
+  function renderChanges(showNsfw) {
+    const keep = ids => ids.filter(id => showNsfw || !nsfwIds.has(id))
+    const { newlyFailing = [], nowPassing = [] } = data.changes || {}
+    const broke = keep(newlyFailing), fixed = keep(nowPassing)
     const link = id => el('a', { href: `#${id}` }, id)
     const part = (label, ids) => ids.length ? [label, ...ids.flatMap((id, i) => i ? [', ', link(id)] : [link(id)])] : []
-    $('#changes').append(...part('Broke since last week: ', newlyFailing), ...(newlyFailing.length && nowPassing.length ? ['. '] : []),
-      ...part('Working again: ', nowPassing))
-    $('#changes').hidden = false
+    $('#changes').replaceChildren(...part('Broke since last week: ', broke), ...(broke.length && fixed.length ? ['. '] : []),
+      ...part('Working again: ', fixed))
+    $('#changes').hidden = !(broke.length || fixed.length)
   }
 
   for (const l of [...new Set(data.extensions.map(x => x.lang))].sort()) $('#lang').append(el('option', { value: l }, l))
 
-  const total = data.extensions.length
   const pills = STATUSES.map(([value, label]) => {
-    const n = value ? data.counts[value] || 0 : total
     const b = el('button', { type: 'button', 'data-status': value, 'aria-pressed': 'false' },
-      value ? el('span', { class: `dot ${value}` }) : '', label, el('span', { class: 'n' }, String(n)))
+      value ? el('span', { class: `dot ${value}` }) : '', label, el('span', { class: 'n' }, ''))
     b.addEventListener('click', () => { state.status = value; apply() })
     $('#pills').append(b)
     return b
   })
 
   const rows = data.extensions.map(x => {
-    const li = el('li', { id: x.id, class: x.status },
+    const li = el('li', { id: x.id, class: x.status, 'data-nsfw': x.contentWarning === 'NSFW' ? '1' : '0' },
       el('div', { class: 'row' },
         el('span', { class: 'name' }, x.name, copyButton(x)),
         el('span', { class: `status ${x.status}` }, el('span', { class: `dot ${x.status}` }), LABEL[x.status])),
@@ -120,32 +122,45 @@ function render(data) {
         ? (x.ops || []).filter(o => o.status === 'fail').map(o => el('div', { class: 'error small' }, `${OPS[o.op]?.[0] || o.op}: ${o.error}`))
         : []))
     $('#list').append(li)
-    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)} ${x.error || ''} ${(x.ops || []).map(o => o.error || '').join(' ')}`) }
+    return { li, x, nsfw: x.contentWarning === 'NSFW', text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)} ${x.error || ''} ${(x.ops || []).map(o => o.error || '').join(' ')}`) }
   })
 
   const params = new URLSearchParams(location.search)
-  const state = { q: params.get('q') || '', status: params.get('status') || '', lang: params.get('lang') || '' }
+  const state = { q: params.get('q') || '', status: params.get('status') || '', lang: params.get('lang') || '',
+    nsfw: params.has('nsfw') ? params.get('nsfw') === '1' : localStorage.getItem('showNsfw') === '1' }
   $('#q').value = state.q
   $('#lang').value = state.lang
+  $('#nsfw').checked = state.nsfw
 
   function apply() {
     const words = norm(state.q).split(' ').filter(Boolean)
+    const visible = rows.filter(r => state.nsfw || !r.nsfw) // NSFW hidden unless toggled on; counts follow
+    renderChanges(state.nsfw)
+    const total = visible.length
     let shown = 0
     for (const r of rows) {
-      const ok = (!state.status || r.x.status === state.status) && (!state.lang || r.x.lang === state.lang) &&
-        words.every(w => r.text.includes(w))
+      const ok = (state.nsfw || !r.nsfw) && (!state.status || r.x.status === state.status) &&
+        (!state.lang || r.x.lang === state.lang) && words.every(w => r.text.includes(w))
       r.li.hidden = !ok
       shown += ok
     }
-    for (const b of pills) b.setAttribute('aria-pressed', String(b.dataset.status === state.status))
+    for (const b of pills) {
+      b.setAttribute('aria-pressed', String(b.dataset.status === state.status))
+      b.querySelector('.n').textContent = String(b.dataset.status ? visible.filter(r => r.x.status === b.dataset.status).length : total)
+    }
     $('#count').textContent = shown === total ? plural(total, 'extension') : `${shown} of ${total}`
     $('#empty').hidden = shown > 0
-    const p = new URLSearchParams(Object.entries(state).filter(([, v]) => v))
+    const p = new URLSearchParams(Object.entries({ ...state, nsfw: state.nsfw ? '1' : '' }).filter(([, v]) => v))
     history.replaceState(null, '', (p.size ? `?${p}` : location.pathname) + location.hash)
   }
 
   $('#q').addEventListener('input', e => { state.q = e.target.value; apply() })
   $('#lang').addEventListener('change', e => { state.lang = e.target.value; apply() })
+  $('#nsfw').addEventListener('change', e => {
+    state.nsfw = e.target.checked
+    if (e.isTrusted) localStorage.setItem('showNsfw', state.nsfw ? '1' : '0') // a permalink opening an NSFW entry doesn't change the saved choice
+    apply()
+  })
   document.addEventListener('keydown', e => {
     if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus() }
     if (e.key === 'Escape' && document.activeElement === $('#q')) { state.q = ''; $('#q').value = ''; apply() }
