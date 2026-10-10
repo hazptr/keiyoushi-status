@@ -14,6 +14,9 @@ client. Anything that fails gets one retry before it counts.
 - **Untestable**: we couldnt get a result, usually a Cloudflare challenge the harness cant solve. The
   app handles most of those, so check there
 
+Results can be wrong: sites change, block automated checks, go down for a bit, or act differently
+depending on where youre browsing from.
+
 It runs off main, so it can be ahead of whats published. If something shows as failing here, check
 it in the app before opening an issue. 1.4 extensions show as Not supported: they use the older
 extension API, which this checker doesnt run.

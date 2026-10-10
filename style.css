@@ -124,3 +124,5 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .bar.none { box-shadow: inset 0 0 0 1.5px var(--line); height: 50%; }
 .bar:hover, .bar:focus-visible { outline: 2px solid var(--focus); }
 .readout { display: block; margin-top: 6px; color: var(--muted); font-size: .8rem; }
+
+.note { margin-top: 14px; padding: 8px 12px; border-left: 3px solid var(--partial); background: var(--soft); border-radius: 0 8px 8px 0; color: var(--fg); }
