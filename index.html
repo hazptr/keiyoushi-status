@@ -3,52 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101012" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Weekly status of every keiyoushi 1.6 extension">
 <title>keiyoushi extension status</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>keiyoushi extension status</h1>
-  <p class="sub">Weekly automated check of every <a href="https://github.com/keiyoushi/extensions-source">keiyoushi</a>
-    1.6 extension, built from <code>main</code>. Unofficial; not affiliated with keiyoushi.</p>
-  <p id="meta" class="sub"></p>
-</header>
+<main>
+  <header>
+    <h1>keiyoushi extension status</h1>
+    <p class="muted">Every 1.6 extension on keiyoushi main, checked once a week. Not affiliated with keiyoushi.</p>
+    <p class="muted small" id="meta"></p>
+  </header>
 
-<section id="summary" class="cards"></section>
+  <p class="changes small" id="changes" hidden></p>
 
-<section id="changes"></section>
-
-<section>
-  <div class="controls">
-    <input id="q" type="search" placeholder="Filter by name, id or language" aria-label="Filter">
-    <select id="status" aria-label="Status">
-      <option value="">All statuses</option>
-      <option value="pass">Working</option>
-      <option value="fail">Failing</option>
-      <option value="untestable">Untestable</option>
-    </select>
+  <div class="bar">
+    <div class="search">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
+      <input id="q" type="search" placeholder="Search extensions" aria-label="Search extensions" autocomplete="off" spellcheck="false">
+      <kbd>/</kbd>
+    </div>
     <select id="lang" aria-label="Language"><option value="">All languages</option></select>
   </div>
-  <table id="table">
-    <thead><tr><th>Extension</th><th>Lang</th><th>Version</th><th>Status</th><th>Since</th><th>Detail</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</section>
 
-<footer>
-  <details>
-    <summary>What is checked</summary>
-    <p>Each extension's real code runs on a JVM harness (no phone): Popular page 1, then details and
-      chapter list of a popular entry, then that chapter's page list, then two page images are
-      downloaded through the extension's own HTTP client and decoded. A failure is retried before it
-      counts.</p>
-    <p><b>Untestable</b> means the harness couldn't get a result for reasons that don't say the
-      extension is broken: a Cloudflare challenge it can't solve (the app solves those in a WebView
-      or asks you to), a build or harness error, or a timeout. Check those in the app.</p>
-    <p>1.4 extensions aren't covered. Results reflect <code>main</code> at the commit shown, which can
-      be ahead of the published APKs.</p>
+  <div class="pills" id="pills" role="group" aria-label="Status"></div>
+
+  <p class="muted small" id="count" aria-live="polite"></p>
+  <ul class="list" id="list"></ul>
+  <p class="empty muted" id="empty" hidden>Nothing matches that.</p>
+
+  <details class="about small">
+    <summary>How its checked</summary>
+    <p>Each extension runs on a JVM harness, no phone. It loads popular, opens a manga and its chapter
+      list, loads the newest chapter, then downloads and decodes two pages through the extensions own
+      client. Anything that fails gets one retry before it counts.</p>
+    <p>Untestable means we couldnt get a result at all, usually a Cloudflare challenge the harness
+      cant solve. The app handles most of those, so check there.</p>
+    <p>This runs off main, so it can be ahead of whats published. If something shows as failing here,
+      check it in the app before opening an issue. 1.4 extensions arent covered.</p>
   </details>
-</footer>
+</main>
 <script src="app.js"></script>
 </body>
 </html>

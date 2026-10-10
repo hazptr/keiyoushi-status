@@ -1,68 +1,90 @@
-const LABEL = { pass: 'Working', fail: 'Failing', untestable: 'Untestable' }
+const STATUSES = [['', 'All'], ['pass', 'Working'], ['fail', 'Failing'], ['untestable', 'Untestable']]
+const LABEL = Object.fromEntries(STATUSES.slice(1))
 const $ = s => document.querySelector(s)
 const el = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag)
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
-  for (const k of kids) e.append(k)
+  e.append(...kids)
   return e
 }
-const chip = s => el('span', { class: `chip ${s}` }, LABEL[s] || s)
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
+const norm = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 
 function detail(x) {
-  if (x.status !== 'pass') return [x.step ? `${x.step}: ` : '', x.error || ''].join('')
+  if (x.status !== 'pass') return [x.step, x.error].filter(Boolean).join(': ')
   const d = x.details || {}
-  const parts = []
-  if (d.chapters != null) parts.push(`${d.chapters} chapter${d.chapters === 1 ? '' : 's'}`)
-  if (d.pages != null) parts.push(`${d.pages} page${d.pages === 1 ? '' : 's'}`)
-  if (d.imageFormats?.length) parts.push(d.imageFormats.join(', '))
-  return parts.join(' · ')
+  return [d.chapters != null && plural(d.chapters, 'chapter'), d.pages != null && plural(d.pages, 'page'), d.imageFormats?.join(', ')]
+    .filter(Boolean).join(' · ')
 }
 
 function render(data) {
-  $('#meta').textContent = `Last sweep ${data.sweepDate} · keiyoushi main ${data.keiCommit.slice(0, 10)}` +
-    (data.previousSweepDate ? ` · compared with ${data.previousSweepDate}` : '')
+  $('#meta').textContent = `Last run ${data.sweepDate} on main @ ${data.keiCommit.slice(0, 10)}`
 
-  const cards = $('#summary')
-  for (const s of ['pass', 'fail', 'untestable']) {
-    cards.append(el('div', { class: `card ${s}` }, el('div', { class: 'n' }, String(data.counts[s] || 0)), LABEL[s]))
+  const { newlyFailing = [], nowPassing = [] } = data.changes || {}
+  if (newlyFailing.length || nowPassing.length) {
+    const link = id => el('a', { href: `#${id}` }, id)
+    const part = (label, ids) => ids.length ? [label, ...ids.flatMap((id, i) => i ? [', ', link(id)] : [link(id)])] : []
+    $('#changes').append(...part('Broke since last week: ', newlyFailing), ...(newlyFailing.length && nowPassing.length ? ['. '] : []),
+      ...part('Working again: ', nowPassing))
+    $('#changes').hidden = false
   }
 
-  const ch = $('#changes')
-  for (const [key, title] of [['newlyFailing', 'Newly failing'], ['nowPassing', 'Working again']]) {
-    const list = data.changes?.[key] || []
-    if (!list.length) continue
-    ch.append(el('h2', {}, `${title} (${list.length})`))
-    ch.append(el('ul', {}, ...list.map(id => el('li', {}, el('a', { href: `#${id}` }, id)))))
-  }
+  for (const l of [...new Set(data.extensions.map(x => x.lang))].sort()) $('#lang').append(el('option', { value: l }, l))
 
-  const langs = [...new Set(data.extensions.map(x => x.lang))].sort()
-  for (const l of langs) $('#lang').append(el('option', { value: l }, l))
-
-  const tbody = $('#table tbody')
-  const rows = data.extensions.map(x => {
-    const tr = el('tr', { id: x.id, 'data-status': x.status, 'data-lang': x.lang, 'data-text': `${x.name} ${x.id} ${x.lang}`.toLowerCase() },
-      el('td', {}, el('span', { class: 'name' }, x.name), el('br'), el('code', {}, x.id)),
-      el('td', {}, x.lang),
-      el('td', {}, `1.6.${x.versionCode}`),
-      el('td', {}, chip(x.status)),
-      el('td', {}, x.since || ''),
-      el('td', { class: 'detail' }, detail(x)))
-    tbody.append(tr)
-    return tr
+  const total = data.extensions.length
+  const pills = STATUSES.map(([value, label]) => {
+    const n = value ? data.counts[value] || 0 : total
+    const b = el('button', { type: 'button', 'data-status': value, 'aria-pressed': 'false' },
+      value ? el('span', { class: `dot ${value}` }) : '', label, el('span', { class: 'n' }, String(n)))
+    b.addEventListener('click', () => { state.status = value; apply() })
+    $('#pills').append(b)
+    return b
   })
 
-  const filter = () => {
-    const q = $('#q').value.trim().toLowerCase()
-    const s = $('#status').value
-    const l = $('#lang').value
-    for (const tr of rows) {
-      tr.hidden = (q && !tr.dataset.text.includes(q)) || (s && tr.dataset.status !== s) || (l && tr.dataset.lang !== l)
+  const rows = data.extensions.map(x => {
+    const li = el('li', { id: x.id },
+      el('div', { class: 'row' },
+        el('span', { class: 'name' }, x.name),
+        el('span', { class: `status ${x.status}` }, el('span', { class: `dot ${x.status}` }), LABEL[x.status])),
+      el('div', { class: 'sub muted small' },
+        el('code', {}, x.id), el('span', {}, `v1.6.${x.versionCode}`), x.since ? el('span', {}, `since ${x.since}`) : ''),
+      ...(detail(x) ? [el('div', { class: `detail small ${x.status}` }, detail(x))] : []))
+    $('#list').append(li)
+    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang}`) }
+  })
+
+  const params = new URLSearchParams(location.search)
+  const state = { q: params.get('q') || '', status: params.get('status') || '', lang: params.get('lang') || '' }
+  $('#q').value = state.q
+  $('#lang').value = state.lang
+
+  function apply() {
+    const words = norm(state.q).split(' ').filter(Boolean)
+    let shown = 0
+    for (const r of rows) {
+      const ok = (!state.status || r.x.status === state.status) && (!state.lang || r.x.lang === state.lang) &&
+        words.every(w => r.text.includes(w))
+      r.li.hidden = !ok
+      shown += ok
     }
+    for (const b of pills) b.setAttribute('aria-pressed', String(b.dataset.status === state.status))
+    $('#count').textContent = shown === total ? plural(total, 'extension') : `${shown} of ${total}`
+    $('#empty').hidden = shown > 0
+    const p = new URLSearchParams(Object.entries(state).filter(([, v]) => v))
+    history.replaceState(null, '', (p.size ? `?${p}` : location.pathname) + location.hash)
   }
-  for (const id of ['#q', '#status', '#lang']) $(id).addEventListener('input', filter)
+
+  $('#q').addEventListener('input', e => { state.q = e.target.value; apply() })
+  $('#lang').addEventListener('change', e => { state.lang = e.target.value; apply() })
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus() }
+    if (e.key === 'Escape' && document.activeElement === $('#q')) { state.q = ''; $('#q').value = ''; apply() }
+  })
+  apply()
+  if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView({ block: 'center' })
 }
 
 fetch('status.json', { cache: 'no-cache' })
   .then(r => r.json())
   .then(render)
-  .catch(e => { $('#meta').textContent = `Couldn't load status.json: ${e}` })
+  .catch(() => { $('#meta').textContent = 'Couldnt load the results, try a refresh.' })

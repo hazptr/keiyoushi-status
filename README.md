@@ -1,33 +1,20 @@
 # keiyoushi extension status
 
-Weekly automated status of every [keiyoushi](https://github.com/keiyoushi/extensions-source)
-1.6 extension, built from `main`. Unofficial; not affiliated with keiyoushi.
+https://hazptr.github.io/keiyoushi-status/
 
-**Page:** https://hazptr.github.io/keiyoushi-status/
+Every 1.6 extension on [keiyoushi](https://github.com/keiyoushi/extensions-source) main, checked
+once a week. Not affiliated with keiyoushi.
 
-## What's checked
+Each extension runs on a JVM harness, no phone. It loads popular, opens a manga and its chapter
+list, loads the newest chapter, then downloads and decodes two pages through the extensions own
+client. Anything that fails gets one retry before it counts.
 
-Each extension's real code runs on a JVM harness, not on a phone:
+- **Working**: all of that went through
+- **Failing**: one step failed, the page says which and why
+- **Untestable**: we couldnt get a result, usually a Cloudflare challenge the harness cant solve. The
+  app handles most of those, so check there
 
-1. Popular, page 1
-2. Details and chapter list of a popular entry
-3. That chapter's page list
-4. Two page images, downloaded through the extension's own HTTP client (so its interceptors run:
-   descrambling, retries) and decoded
+It runs off main, so it can be ahead of whats published. If something shows as failing here, check
+it in the app before opening an issue. 1.4 extensions arent covered.
 
-A failure is retried before it counts.
-
-| Status | Meaning |
-|---|---|
-| Working | every step passed |
-| Failing | a step failed; the page shows which, with a short error |
-| Untestable | the harness couldn't get a result for a reason that doesn't mean the extension is broken: a Cloudflare challenge it can't solve, a build or harness error, a timeout |
-
-1.4 extensions aren't covered. Results reflect `main` at the commit shown on the page, which can be
-ahead of the published APKs. A failure here is a hint, not a verdict: check in the app before
-reporting it upstream.
-
-## Data
-
-`status.json` on the `gh-pages` branch. It's regenerated after each weekly run and replaced in a
-single commit, so the branch has no history.
+The data is `status.json` on the `gh-pages` branch, replaced on every run.
