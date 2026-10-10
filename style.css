@@ -28,12 +28,12 @@ code { font: .85em ui-monospace, SFMono-Regular, Menlo, monospace; }
 .search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: .75rem ui-monospace, monospace;
   color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 6px; pointer-events: none; }
 .search input:focus ~ kbd, .search input:not(:placeholder-shown) ~ kbd { display: none; }
-input, select { font: inherit; color: var(--fg); background: var(--soft); border: 1px solid transparent; border-radius: 10px;
+input[type="search"], select { font: inherit; color: var(--fg); background: var(--soft); border: 1px solid transparent; border-radius: 10px;
   height: 40px; outline: none; transition: border-color .15s, background .15s; }
-input { width: 100%; padding: 0 40px 0 36px; }
+input[type="search"] { width: 100%; padding: 0 40px 0 36px; }
 input::-webkit-search-cancel-button { display: none; }
 select { padding: 0 10px; max-width: 40%; }
-input:focus, select:focus { border-color: var(--focus); background: var(--bg); }
+input[type="search"]:focus, select:focus { border-color: var(--focus); background: var(--bg); }
 
 .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
 .pills button { font: inherit; font-size: .85rem; color: var(--muted); background: none; border: 1px solid var(--line);
@@ -107,5 +107,12 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 @media (max-width: 520px) { .ops { grid-template-columns: auto 1fr max-content; } .ops .operr { grid-column: 2 / -1; } }
 .more[open] ~ .error { display: none; } /* the operations list shows them */
 
-.toggle-nsfw { display: inline-flex; align-items: center; gap: 6px; margin: -4px 0 14px; color: var(--muted); cursor: pointer; user-select: none; }
-.toggle-nsfw input { width: 15px; height: 15px; margin: 0; accent-color: var(--fg); cursor: pointer; }
+.toggle-nsfw { display: inline-flex; align-items: center; gap: 8px; margin: -2px 0 14px; color: var(--muted); cursor: pointer; user-select: none; }
+.toggle-nsfw input { appearance: none; -webkit-appearance: none; position: relative; width: 28px; height: 16px; margin: 0; flex: none;
+  border-radius: 99px; background: var(--line); cursor: pointer; transition: background .15s; }
+.toggle-nsfw input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--bg); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .15s; }
+.toggle-nsfw input:checked { background: var(--fg); }
+.toggle-nsfw input:checked::after { transform: translateX(12px); }
+.toggle-nsfw input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.toggle-nsfw:hover { color: var(--fg); }
