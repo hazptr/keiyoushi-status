@@ -78,7 +78,8 @@ function showHash() {
   document.querySelectorAll('li.linked').forEach(l => l.classList.remove('linked'))
   const li = document.getElementById(decodeURIComponent(location.hash.slice(1)))
   if (!li) return
-  if (li.dataset.nsfw === '1' && !document.getElementById('nsfw').checked) document.getElementById('nsfw').click()
+  const content = document.getElementById('content')
+  if (li.dataset.nsfw === '1' && content.value === '') { content.value = 'all'; content.dispatchEvent(new Event('change')) }
   li.hidden = false
   li.querySelector('details').open = true
   li.classList.remove('flash')
@@ -132,40 +133,55 @@ function render(data) {
 
   const params = new URLSearchParams(location.search)
   const state = { q: params.get('q') || '', status: params.get('status') || '', lang: params.get('lang') || '',
-    nsfw: params.has('nsfw') ? params.get('nsfw') === '1' : localStorage.getItem('showNsfw') === '1' }
+    content: ['all', 'nsfw'].includes(params.get('content')) ? params.get('content') : '' }
   $('#q').value = state.q
   $('#lang').value = state.lang
-  $('#nsfw').checked = state.nsfw
+  $('#content').value = state.content
+
+  const contentOk = r => state.content === 'all' || (state.content === 'nsfw' ? r.nsfw : !r.nsfw)
+  const langOk = r => !state.lang || r.x.lang === state.lang
+  const statusOk = r => !state.status || r.x.status === state.status
 
   function apply() {
     const words = norm(state.q).split(' ').filter(Boolean)
-    const visible = rows.filter(r => state.nsfw || !r.nsfw) // NSFW hidden unless toggled on; counts follow
-    renderChanges(state.nsfw)
-    const total = visible.length
+    const searchOk = r => words.every(w => r.text.includes(w))
+    renderChanges(state.content !== '')
     let shown = 0
     for (const r of rows) {
-      const ok = (state.nsfw || !r.nsfw) && (!state.status || r.x.status === state.status) &&
-        (!state.lang || r.x.lang === state.lang) && words.every(w => r.text.includes(w))
+      const ok = contentOk(r) && langOk(r) && statusOk(r) && searchOk(r)
       r.li.hidden = !ok
       shown += ok
     }
+    // Counts follow everything except the status pills themselves.
+    const pool = rows.filter(r => contentOk(r) && langOk(r) && searchOk(r))
     for (const b of pills) {
       b.setAttribute('aria-pressed', String(b.dataset.status === state.status))
-      b.querySelector('.n').textContent = String(b.dataset.status ? visible.filter(r => r.x.status === b.dataset.status).length : total)
+      b.querySelector('.n').textContent = String(b.dataset.status ? pool.filter(r => r.x.status === b.dataset.status).length : pool.length)
     }
+    const total = rows.filter(r => contentOk(r) && langOk(r)).length
     $('#count').textContent = shown === total ? plural(total, 'extension') : `${shown} of ${total}`
-    $('#empty').hidden = shown > 0
-    const p = new URLSearchParams(Object.entries({ ...state, nsfw: state.nsfw ? '1' : '' }).filter(([, v]) => v))
+    // A search that matches things the other filters hide says so, with a way to show them.
+    const hidden = words.length ? rows.filter(r => searchOk(r) && !(contentOk(r) && langOk(r) && statusOk(r))).length : 0
+    const hint = $('#hidden-hint')
+    hint.hidden = hidden === 0
+    if (hidden) {
+      const show = el('a', { href: '#' }, 'Show them')
+      show.addEventListener('click', e => {
+        e.preventDefault()
+        Object.assign(state, { status: '', lang: '', content: 'all' })
+        $('#lang').value = ''; $('#content').value = 'all'
+        apply()
+      })
+      hint.replaceChildren(`${hidden} more match "${state.q.trim()}" but your filters hide ${hidden === 1 ? 'it' : 'them'}. `, show)
+    }
+    $('#empty').hidden = shown > 0 || hidden > 0
+    const p = new URLSearchParams(Object.entries(state).filter(([, v]) => v))
     history.replaceState(null, '', (p.size ? `?${p}` : location.pathname) + location.hash)
   }
 
   $('#q').addEventListener('input', e => { state.q = e.target.value; apply() })
   $('#lang').addEventListener('change', e => { state.lang = e.target.value; apply() })
-  $('#nsfw').addEventListener('change', e => {
-    state.nsfw = e.target.checked
-    if (e.isTrusted) localStorage.setItem('showNsfw', state.nsfw ? '1' : '0') // a permalink opening an NSFW entry doesn't change the saved choice
-    apply()
-  })
+  $('#content').addEventListener('change', e => { state.content = e.target.value; apply() })
   document.addEventListener('keydown', e => {
     if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus() }
     if (e.key === 'Escape' && document.activeElement === $('#q')) { state.q = ''; $('#q').value = ''; apply() }

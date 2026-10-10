@@ -27,12 +27,17 @@
       <kbd>/</kbd>
     </div>
     <select id="lang" aria-label="Language"><option value="">All languages</option></select>
+    <select id="content" aria-label="Content">
+      <option value="">SFW only</option>
+      <option value="all">All content</option>
+      <option value="nsfw">NSFW only</option>
+    </select>
   </div>
-  <label class="toggle-nsfw small"><input type="checkbox" id="nsfw"> Show NSFW</label>
 
   <div class="pills" id="pills" role="group" aria-label="Status"></div>
 
   <p class="muted small" id="count" aria-live="polite"></p>
+  <p class="hidden-hint small" id="hidden-hint" hidden></p>
   <ul class="list" id="list"></ul>
   <p class="empty muted" id="empty" hidden>Nothing matches that.</p>
 

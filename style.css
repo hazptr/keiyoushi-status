@@ -32,7 +32,7 @@ input[type="search"], select { font: inherit; color: var(--fg); background: var(
   height: 40px; outline: none; transition: border-color .15s, background .15s; }
 input[type="search"] { width: 100%; padding: 0 40px 0 36px; }
 input::-webkit-search-cancel-button { display: none; }
-select { padding: 0 10px; max-width: 40%; }
+select { padding: 0 10px; max-width: 30%; }
 input[type="search"]:focus, select:focus { border-color: var(--focus); background: var(--bg); }
 
 .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
@@ -91,7 +91,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 
 @media (max-width: 520px) {
   main { padding-top: 32px; }
-  .bar { flex-direction: column; }
+  .bar { flex-wrap: wrap; }
+  .search { flex-basis: 100%; }
+  .bar select { flex: 1; max-width: none; }
   select { max-width: none; }
 }
 
@@ -107,12 +109,5 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 @media (max-width: 520px) { .ops { grid-template-columns: auto 1fr max-content; } .ops .operr { grid-column: 2 / -1; } }
 .more[open] ~ .error { display: none; } /* the operations list shows them */
 
-.toggle-nsfw { display: inline-flex; align-items: center; gap: 8px; margin: -2px 0 14px; color: var(--muted); cursor: pointer; user-select: none; }
-.toggle-nsfw input { appearance: none; -webkit-appearance: none; position: relative; width: 28px; height: 16px; margin: 0; flex: none;
-  border-radius: 99px; background: var(--line); cursor: pointer; transition: background .15s; }
-.toggle-nsfw input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
-  background: var(--bg); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .15s; }
-.toggle-nsfw input:checked { background: var(--fg); }
-.toggle-nsfw input:checked::after { transform: translateX(12px); }
-.toggle-nsfw input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.toggle-nsfw:hover { color: var(--fg); }
+.hidden-hint { margin: -2px 0 10px; color: var(--muted); }
+.hidden-hint a { color: var(--fg); }
