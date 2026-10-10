@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>keiyoushi extension status</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>keiyoushi extension status</h1>
+  <p class="sub">Weekly automated check of every <a href="https://github.com/keiyoushi/extensions-source">keiyoushi</a>
+    1.6 extension, built from <code>main</code>. Unofficial; not affiliated with keiyoushi.</p>
+  <p id="meta" class="sub"></p>
+</header>
+
+<section id="summary" class="cards"></section>
+
+<section id="changes"></section>
+
+<section>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Filter by name, id or language" aria-label="Filter">
+    <select id="status" aria-label="Status">
+      <option value="">All statuses</option>
+      <option value="pass">Working</option>
+      <option value="fail">Failing</option>
+      <option value="untestable">Untestable</option>
+    </select>
+    <select id="lang" aria-label="Language"><option value="">All languages</option></select>
+  </div>
+  <table id="table">
+    <thead><tr><th>Extension</th><th>Lang</th><th>Version</th><th>Status</th><th>Since</th><th>Detail</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<footer>
+  <details>
+    <summary>What is checked</summary>
+    <p>Each extension's real code runs on a JVM harness (no phone): Popular page 1, then details and
+      chapter list of a popular entry, then that chapter's page list, then two page images are
+      downloaded through the extension's own HTTP client and decoded. A failure is retried before it
+      counts.</p>
+    <p><b>Untestable</b> means the harness couldn't get a result for reasons that don't say the
+      extension is broken: a Cloudflare challenge it can't solve (the app solves those in a WebView
+      or asks you to), a build or harness error, or a timeout. Check those in the app.</p>
+    <p>1.4 extensions aren't covered. Results reflect <code>main</code> at the commit shown, which can
+      be ahead of the published APKs.</p>
+  </details>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+:root {
+  --bg: #fff; --fg: #1d1d1f; --muted: #6b6b70; --line: #e4e4e7; --card: #f6f6f7;
+  --pass: #1a7f37; --fail: #c62828; --untestable: #6b7280;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111113; --fg: #ececef; --muted: #9a9aa2; --line: #2a2a2e; --card: #1b1b1e;
+          --pass: #4ac26b; --fail: #f47067; --untestable: #9ca3af; }
+}
+* { box-sizing: border-box; }
+body { margin: 0 auto; max-width: 1100px; padding: 24px 16px 48px; background: var(--bg); color: var(--fg);
+       font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: inherit; }
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { font-size: 1.05rem; margin: 20px 0 6px; }
+.sub { margin: 2px 0; color: var(--muted); }
+code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.cards { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+.card { flex: 1 1 140px; background: var(--card); border-radius: 10px; padding: 12px 16px; border-left: 4px solid; }
+.card .n { font-size: 1.8rem; font-weight: 600; }
+.card.pass { border-color: var(--pass); } .card.fail { border-color: var(--fail); } .card.untestable { border-color: var(--untestable); }
+#changes ul { margin: 0; padding-left: 20px; columns: 3 220px; }
+.controls { display: flex; gap: 8px; margin: 20px 0 10px; flex-wrap: wrap; }
+.controls input { flex: 1 1 240px; }
+input, select { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+td.detail { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.name { font-weight: 500; }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: .8rem; font-weight: 600; color: #fff; white-space: nowrap; }
+.chip.pass { background: var(--pass); } .chip.fail { background: var(--fail); } .chip.untestable { background: var(--untestable); }
+tr:target { outline: 2px solid var(--muted); }
+footer { margin-top: 32px; color: var(--muted); }
