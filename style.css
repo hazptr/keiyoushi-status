@@ -1,12 +1,12 @@
 :root {
   color-scheme: light dark;
   --bg: #ffffff; --fg: #18181b; --muted: #71717a; --line: #ececee; --soft: #f4f4f5; --focus: #a1a1aa;
-  --pass: #16a34a; --fail: #dc2626; --untestable: #a1a1aa;
+  --pass: #16a34a; --partial: #d97706; --fail: #dc2626; --untestable: #a1a1aa;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #101012; --fg: #ececee; --muted: #8b8b94; --line: #222226; --soft: #1a1a1d; --focus: #52525b;
-    --pass: #4ade80; --fail: #f87171; --untestable: #71717a;
+    --pass: #4ade80; --partial: #fbbf24; --fail: #f87171; --untestable: #71717a;
   }
 }
 * { box-sizing: border-box; }
@@ -45,7 +45,8 @@ input:focus, select:focus { border-color: var(--focus); background: var(--bg); }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
-.dot.pass { background: var(--pass); } .dot.fail { background: var(--fail); } .dot.untestable { background: var(--untestable); }
+.dot.pass { background: var(--pass); } .dot.partial { background: var(--partial); } .dot.fail { background: var(--fail); }
+.dot.untestable { background: var(--untestable); } .dot.skip { background: transparent; box-shadow: inset 0 0 0 1.5px var(--untestable); }
 
 .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .list li { padding: 14px 10px; margin: 0 -10px; border-bottom: 1px solid var(--line); scroll-margin-top: 80px;
@@ -54,6 +55,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   background: color-mix(in srgb, var(--tone) 11%, var(--bg)); }
 .list li.linked.pass { --tone: var(--pass); }
 .list li.linked.fail { --tone: var(--fail); }
+.list li.linked.partial { --tone: var(--partial); }
 .list li.linked .more dl { background: var(--bg); }
 .list li.flash { animation: flash 1.6s ease-out; }
 @keyframes flash { 0%, 30% { box-shadow: 0 0 0 3px var(--focus); } 100% { box-shadow: 0 0 0 3px transparent; } }
@@ -71,6 +73,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .more summary { list-style: none; display: flex; justify-content: space-between; gap: 12px; cursor: pointer; color: var(--muted); }
 .more summary::-webkit-details-marker { display: none; }
 .plain.fail { color: var(--fail); }
+.plain.partial { color: var(--partial); }
 .error { margin-top: 4px; color: var(--muted); font: .78rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 .toggle { flex: none; font-size: .8rem; opacity: .7; }
 .toggle::after { content: " ▸"; }
@@ -91,3 +94,15 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   .bar { flex-direction: column; }
   select { max-width: none; }
 }
+
+.ops { list-style: none; margin: 10px 0 0; padding: 10px 12px; background: var(--soft); border-radius: 8px;
+  display: grid; grid-template-columns: auto max-content max-content 1fr; gap: 6px 10px; align-items: baseline; }
+.list li.linked .ops { background: var(--bg); }
+.ops li { display: contents; }
+.ops .dot { align-self: center; }
+.ops .op { color: var(--fg); }
+.ops .opstatus { color: var(--muted); }
+.ops .opstatus.fail { color: var(--fail); }
+.ops .operr { color: var(--muted); font: .78rem ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .ops { grid-template-columns: auto 1fr max-content; } .ops .operr { grid-column: 2 / -1; } }
+.more[open] ~ .error { display: none; } /* the operations list shows them */

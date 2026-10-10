@@ -1,4 +1,4 @@
-const STATUSES = [['', 'All'], ['pass', 'Working'], ['fail', 'Failing'], ['untestable', 'Untestable']]
+const STATUSES = [['', 'All'], ['pass', 'Working'], ['partial', 'Partly working'], ['fail', 'Not working'], ['untestable', 'Untestable']]
 const LABEL = Object.fromEntries(STATUSES.slice(1))
 const $ = s => document.querySelector(s)
 const el = (tag, attrs = {}, ...kids) => {
@@ -10,27 +10,40 @@ const el = (tag, attrs = {}, ...kids) => {
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 const norm = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 
-// One plain sentence per status, for people who don't care about the internals.
-const PLAIN_FAIL = {
-  popular: 'Cant load its list of titles',
-  search: 'Search doesnt work',
-  manga: 'Titles dont open',
-  pages: 'Chapters dont open',
-  images: 'Pages dont load',
+// What each operation is called, and what a failure of it means, for people who don't care about the internals.
+const OPS = {
+  browse: ['Browse', 'Cant load its list of titles'],
+  latest: ['Latest updates', 'Latest updates dont load'],
+  search: ['Search', 'Search doesnt work'],
+  details: ['Open a title', 'Titles dont open'],
+  chapters: ['Chapter list', 'Chapter lists dont load'],
+  read: ['Open a chapter', 'Chapters dont open'],
+  pages: ['Load pages', 'Pages dont load'],
 }
+const OP_STATUS = { pass: 'Works', fail: 'Fails', skip: 'Not checked', untestable: 'Couldnt check' }
+
 function plain(x) {
   if (x.status === 'pass') return 'Loads and reads fine'
-  if (x.status === 'fail') return PLAIN_FAIL[x.step] || 'Something in it is broken'
+  if (x.status === 'partial' || x.status === 'fail') {
+    const failed = (x.ops || []).filter(o => o.status === 'fail').map(o => OPS[o.op]?.[1] || o.op)
+    if (failed.length) return failed.join(', ')
+    return x.step ? (OPS[x.step]?.[1] || 'Something in it is broken') : 'Something in it is broken'
+  }
   return x.error || 'Couldnt check this one automatically'
 }
 
 function technical(x) {
   const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
   if (x.checkedWith) rows.push(['Checked with', x.checkedWith])
-  if (x.status === 'fail') rows.push(['Failing step', x.step || '?'])
-  if (x.status === 'untestable') rows.push(['Why', x.error || ''])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
-  return el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
+  const dl = el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
+  if (!x.ops?.length) return dl
+  const ops = el('ul', { class: 'ops' }, ...x.ops.map(o => el('li', {},
+    el('span', { class: `dot ${o.status === 'skip' ? 'skip' : o.status === 'untestable' ? 'untestable' : o.status}` }),
+    el('span', { class: 'op' }, OPS[o.op]?.[0] || o.op),
+    el('span', { class: `opstatus ${o.status}` }, OP_STATUS[o.status] || o.status),
+    ...(o.error || o.reason ? [el('span', { class: 'operr' }, o.error || o.reason)] : []))))
+  return el('div', {}, ops, dl)
 }
 
 const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
@@ -103,9 +116,11 @@ function render(data) {
       el('details', { class: 'more small' },
         el('summary', {}, el('span', { class: `plain ${x.status}` }, plain(x)), el('span', { class: 'toggle' }, 'Details')),
         technical(x)),
-      ...(x.status === 'fail' && x.error ? [el('div', { class: 'error small' }, x.step ? `${x.step}: ${x.error}` : x.error)] : []))
+      ...((x.status === 'fail' || x.status === 'partial')
+        ? (x.ops || []).filter(o => o.status === 'fail').map(o => el('div', { class: 'error small' }, `${OPS[o.op]?.[0] || o.op}: ${o.error}`))
+        : []))
     $('#list').append(li)
-    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)} ${x.error || ''}`) }
+    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)} ${x.error || ''} ${(x.ops || []).map(o => o.error || '').join(' ')}`) }
   })
 
   const params = new URLSearchParams(location.search)
