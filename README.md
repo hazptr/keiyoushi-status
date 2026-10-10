@@ -3,7 +3,7 @@
 https://hazptr.github.io/keiyoushi-status/
 
 Every 1.6 extension on [keiyoushi](https://github.com/keiyoushi/extensions-source) main, checked
-once a week. Not affiliated with keiyoushi.
+every day. Not affiliated with keiyoushi.
 
 Each extension runs on a JVM harness, no phone. It loads popular, opens a manga and its chapter
 list, loads the newest chapter, then downloads and decodes two pages through the extensions own

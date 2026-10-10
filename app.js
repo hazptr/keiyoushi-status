@@ -130,7 +130,7 @@ function render(data) {
     const broke = keep(newlyFailing), fixed = keep(nowPassing)
     const link = id => el('a', { href: `#${id}` }, id)
     const part = (label, ids) => ids.length ? [label, ...ids.flatMap((id, i) => i ? [', ', link(id)] : [link(id)])] : []
-    $('#changes').replaceChildren(...part('Broke since last week: ', broke), ...(broke.length && fixed.length ? ['. '] : []),
+    $('#changes').replaceChildren(...part('Broke since the last run: ', broke), ...(broke.length && fixed.length ? ['. '] : []),
       ...part('Working again: ', fixed))
     $('#changes').hidden = !(broke.length || fixed.length)
   }
