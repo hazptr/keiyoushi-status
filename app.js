@@ -12,8 +12,8 @@ function detail(x) {
   if (x.status !== 'pass') return [x.step ? `${x.step}: ` : '', x.error || ''].join('')
   const d = x.details || {}
   const parts = []
-  if (d.chapters != null) parts.push(`${d.chapters} chapters`)
-  if (d.pages != null) parts.push(`${d.pages} pages`)
+  if (d.chapters != null) parts.push(`${d.chapters} chapter${d.chapters === 1 ? '' : 's'}`)
+  if (d.pages != null) parts.push(`${d.pages} page${d.pages === 1 ? '' : 's'}`)
   if (d.imageFormats?.length) parts.push(d.imageFormats.join(', '))
   return parts.join(' · ')
 }
