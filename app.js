@@ -7,6 +7,10 @@ const el = (tag, attrs = {}, ...kids) => {
   e.append(...kids)
   return e
 }
+// Chrome rejects dateStyle/timeStyle together with timeZoneName, so spell the fields out.
+const when = iso => new Intl.DateTimeFormat(undefined, {
+  year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+}).format(new Date(iso))
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 const norm = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 
@@ -35,6 +39,7 @@ function plain(x) {
 function technical(x) {
   const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
   if (x.checkedWith) rows.push(['Checked with', x.checkedWith])
+  if (x.checked) rows.push(['Checked', when(x.checked)])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
   const dl = el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
   if (!x.ops?.length) return dl
@@ -85,8 +90,8 @@ function showHash() {
 function render(data) {
   const run = data.inProgress
   $('#meta').textContent = run
-    ? `Run in progress, ${run.done} of ${run.total} checked so far (main @ ${data.keiCommit.slice(0, 10)})`
-    : `Last run ${data.sweepDate} on main @ ${data.keiCommit.slice(0, 10)}`
+    ? `Run in progress, ${run.done} of ${run.total} checked so far, updated ${when(data.generated)} (main @ ${data.keiCommit.slice(0, 10)})`
+    : `Last run ${when(data.generated)} on main @ ${data.keiCommit.slice(0, 10)}`
 
   const nsfwIds = new Set(data.extensions.filter(x => x.contentWarning === 'NSFW').map(x => x.id))
   function renderChanges(showNsfw) {
@@ -172,5 +177,8 @@ function render(data) {
 
 fetch('status.json', { cache: 'no-cache' })
   .then(r => r.json())
-  .then(render)
-  .catch(() => { $('#meta').textContent = 'Couldnt load the results, try a refresh.' })
+  .catch(() => null)
+  .then(data => {
+    if (!data) { $('#meta').textContent = 'Couldnt load the results, try a refresh.'; return }
+    render(data)
+  })
