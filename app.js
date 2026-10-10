@@ -25,7 +25,7 @@ function plain(x) {
 
 function technical(x) {
   const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
-  if (x.status === 'fail') rows.push(['Failing step', x.step || '?'], ['Error', x.error || ''])
+  if (x.status === 'fail') rows.push(['Failing step', x.step || '?'])
   if (x.status === 'untestable') rows.push(['Why', x.error || ''])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
   return el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
@@ -100,9 +100,10 @@ function render(data) {
         el('span', { class: `status ${x.status}` }, el('span', { class: `dot ${x.status}` }), LABEL[x.status])),
       el('details', { class: 'more small' },
         el('summary', {}, el('span', { class: `plain ${x.status}` }, plain(x)), el('span', { class: 'toggle' }, 'Details')),
-        technical(x)))
+        technical(x)),
+      ...(x.status === 'fail' && x.error ? [el('div', { class: 'error small' }, x.step ? `${x.step}: ${x.error}` : x.error)] : []))
     $('#list').append(li)
-    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)}`) }
+    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)} ${x.error || ''}`) }
   })
 
   const params = new URLSearchParams(location.search)

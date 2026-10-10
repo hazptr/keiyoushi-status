@@ -71,6 +71,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .more summary { list-style: none; display: flex; justify-content: space-between; gap: 12px; cursor: pointer; color: var(--muted); }
 .more summary::-webkit-details-marker { display: none; }
 .plain.fail { color: var(--fail); }
+.error { margin-top: 4px; color: var(--muted); font: .78rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 .toggle { flex: none; font-size: .8rem; opacity: .7; }
 .toggle::after { content: " ▸"; }
 .more[open] .toggle::after { content: " ▾"; }
