@@ -24,7 +24,7 @@ const OPS = {
   read: ['Open a chapter', 'Chapters dont open'],
   pages: ['Load pages', 'Pages dont load'],
 }
-const OP_STATUS = { pass: 'Works', fail: 'Fails', skip: 'Not checked', untestable: 'Couldnt check' }
+const OP_STATUS = { pass: 'Works', fail: 'Fails', skip: 'Not checked', untestable: 'Couldnt check', na: 'Not applicable' }
 
 function plain(x) {
   if (x.status === 'pass') return 'Loads and reads fine'
@@ -69,7 +69,7 @@ function technical(x) {
   const dl = el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
   if (!x.ops?.length) return el('div', {}, ...(hist ? [hist] : []), dl)
   const ops = el('ul', { class: 'ops' }, ...x.ops.map(o => el('li', {},
-    el('span', { class: `dot ${o.status === 'skip' ? 'skip' : o.status === 'untestable' ? 'untestable' : o.status}` }),
+    el('span', { class: `dot ${['skip', 'na'].includes(o.status) ? 'skip' : o.status}` }),
     el('span', { class: 'op' }, OPS[o.op]?.[0] || o.op),
     el('span', { class: `opstatus ${o.status}` }, OP_STATUS[o.status] || o.status),
     ...(o.error || o.reason ? [el('span', { class: 'operr' }, o.error || o.reason)] : []))))
