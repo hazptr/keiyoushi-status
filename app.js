@@ -10,11 +10,25 @@ const el = (tag, attrs = {}, ...kids) => {
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
 const norm = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
 
-function detail(x) {
-  if (x.status !== 'pass') return [x.step, x.error].filter(Boolean).join(': ')
-  const d = x.details || {}
-  return [d.chapters != null && plural(d.chapters, 'chapter'), d.pages != null && plural(d.pages, 'page'), d.imageFormats?.join(', ')]
-    .filter(Boolean).join(' · ')
+// One plain sentence per status, for people who don't care about the internals.
+const PLAIN_FAIL = {
+  popular: 'Cant load its list of titles',
+  manga: 'Titles dont open',
+  pages: 'Chapters dont open',
+  images: 'Pages dont load',
+}
+function plain(x) {
+  if (x.status === 'pass') return 'Loads and reads fine'
+  if (x.status === 'fail') return PLAIN_FAIL[x.step] || 'Something in it is broken'
+  return x.error || 'Couldnt check this one automatically'
+}
+
+function technical(x) {
+  const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
+  if (x.status === 'fail') rows.push(['Failing step', x.step || '?'], ['Error', x.error || ''])
+  if (x.status === 'untestable') rows.push(['Why', x.error || ''])
+  if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
+  return el('dl', {}, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]))
 }
 
 const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
@@ -41,9 +55,14 @@ function copyButton(x) {
 }
 
 function showHash() {
+  document.querySelectorAll('li.linked').forEach(l => l.classList.remove('linked'))
   const li = document.getElementById(decodeURIComponent(location.hash.slice(1)))
   if (!li) return
   li.hidden = false
+  li.querySelector('details').open = true
+  li.classList.remove('flash')
+  void li.offsetWidth // restart the animation
+  li.classList.add('linked', 'flash')
   li.scrollIntoView({ block: 'center' })
 }
 
@@ -75,15 +94,15 @@ function render(data) {
   })
 
   const rows = data.extensions.map(x => {
-    const li = el('li', { id: x.id },
+    const li = el('li', { id: x.id, class: x.status },
       el('div', { class: 'row' },
         el('span', { class: 'name' }, x.name, copyButton(x)),
         el('span', { class: `status ${x.status}` }, el('span', { class: `dot ${x.status}` }), LABEL[x.status])),
-      el('div', { class: 'sub muted small' },
-        el('code', {}, x.id), el('span', {}, `v1.6.${x.versionCode}`), x.since ? el('span', {}, `since ${x.since}`) : ''),
-      ...(detail(x) ? [el('div', { class: `detail small ${x.status}` }, detail(x))] : []))
+      el('details', { class: 'more small' },
+        el('summary', {}, el('span', { class: `plain ${x.status}` }, plain(x)), el('span', { class: 'toggle' }, 'Details')),
+        technical(x)))
     $('#list').append(li)
-    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang}`) }
+    return { li, x, text: norm(`${x.name} ${x.id} ${x.lang} ${plain(x)}`) }
   })
 
   const params = new URLSearchParams(location.search)
