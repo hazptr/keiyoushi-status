@@ -18,7 +18,10 @@ function detail(x) {
 }
 
 function render(data) {
-  $('#meta').textContent = `Last run ${data.sweepDate} on main @ ${data.keiCommit.slice(0, 10)}`
+  const run = data.inProgress
+  $('#meta').textContent = run
+    ? `Run in progress, ${run.done} of ${run.total} checked so far (main @ ${data.keiCommit.slice(0, 10)})`
+    : `Last run ${data.sweepDate} on main @ ${data.keiCommit.slice(0, 10)}`
 
   const { newlyFailing = [], nowPassing = [] } = data.changes || {}
   if (newlyFailing.length || nowPassing.length) {
