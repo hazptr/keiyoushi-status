@@ -25,6 +25,7 @@ function plain(x) {
 
 function technical(x) {
   const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
+  if (x.checkedWith) rows.push(['Checked with', x.checkedWith])
   if (x.status === 'fail') rows.push(['Failing step', x.step || '?'])
   if (x.status === 'untestable') rows.push(['Why', x.error || ''])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])
