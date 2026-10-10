@@ -1,4 +1,5 @@
-const STATUSES = [['', 'All'], ['pass', 'Working'], ['partial', 'Partly working'], ['fail', 'Not working'], ['untestable', 'Untestable']]
+const STATUSES = [['', 'All'], ['pass', 'Working'], ['partial', 'Partly working'], ['fail', 'Not working'], ['untestable', 'Untestable'],
+  ['unsupported', 'Not supported']]
 const LABEL = Object.fromEntries(STATUSES.slice(1))
 const $ = s => document.querySelector(s)
 const el = (tag, attrs = {}, ...kids) => {
@@ -36,7 +37,7 @@ function plain(x) {
   return x.error || 'Couldnt check this one automatically'
 }
 
-const FROM_CODE = { p: 'pass', a: 'partial', f: 'fail', u: 'untestable' }
+const FROM_CODE = { p: 'pass', a: 'partial', f: 'fail', u: 'untestable', n: 'unsupported' }
 const day = d => new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d))
 
 // One bar per run, oldest first; the newest is this run. Tap or hover a bar for its date and status.
@@ -61,8 +62,8 @@ function runHistory(x, data) {
 }
 
 function technical(x) {
-  const hist = DATA ? runHistory(x, DATA) : null
-  const rows = [['Extension', `${x.id} v1.6.${x.versionCode}`]]
+  const hist = DATA && x.status !== 'unsupported' ? runHistory(x, DATA) : null
+  const rows = [['Extension', `${x.id} v${x.libVersion || '1.6'}.${x.versionCode}`]]
   if (x.checkedWith) rows.push(['Checked with', x.checkedWith])
   if (x.checked) rows.push(['Checked', when(x.checked)])
   if (x.since) rows.push([`${LABEL[x.status]} since`, x.since])

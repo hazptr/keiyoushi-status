@@ -15,6 +15,7 @@ client. Anything that fails gets one retry before it counts.
   app handles most of those, so check there
 
 It runs off main, so it can be ahead of whats published. If something shows as failing here, check
-it in the app before opening an issue. 1.4 extensions arent covered.
+it in the app before opening an issue. 1.4 extensions show as Not supported: they use the older
+extension API, which this checker doesnt run.
 
 The data is `status.json` on the `gh-pages` branch, replaced on every run.

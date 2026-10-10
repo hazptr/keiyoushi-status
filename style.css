@@ -46,7 +46,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
 .dot.pass { background: var(--pass); } .dot.partial { background: var(--partial); } .dot.fail { background: var(--fail); }
-.dot.untestable { background: var(--untestable); } .dot.skip { background: transparent; box-shadow: inset 0 0 0 1.5px var(--untestable); }
+.dot.untestable { background: var(--untestable); } .dot.unsupported { background: transparent; box-shadow: inset 0 0 0 1.5px var(--untestable); } .dot.skip { background: transparent; box-shadow: inset 0 0 0 1.5px var(--untestable); }
 
 .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .list li { padding: 14px 10px; margin: 0 -10px; border-bottom: 1px solid var(--line); scroll-margin-top: 80px;
@@ -56,6 +56,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .list li.linked.pass { --tone: var(--pass); }
 .list li.linked.fail { --tone: var(--fail); }
 .list li.linked.partial { --tone: var(--partial); }
+.list li.linked.unsupported { --tone: var(--untestable); }
 .list li.linked .more dl { background: var(--bg); }
 .list li.flash { animation: flash 1.6s ease-out; }
 @keyframes flash { 0%, 30% { box-shadow: 0 0 0 3px var(--focus); } 100% { box-shadow: 0 0 0 3px transparent; } }
