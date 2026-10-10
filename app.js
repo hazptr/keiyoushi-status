@@ -17,6 +17,36 @@ function detail(x) {
     .filter(Boolean).join(' · ')
 }
 
+const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
+
+function copyButton(x) {
+  const b = el('button', { type: 'button', class: 'copy', title: 'Copy link', 'aria-label': `Copy link to ${x.name}` })
+  b.innerHTML = LINK_ICON
+  b.addEventListener('click', async () => {
+    const url = `${location.origin}${location.pathname}#${x.id}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const t = el('textarea', {}, url)
+      document.body.append(t)
+      t.select()
+      document.execCommand('copy')
+      t.remove()
+    }
+    b.classList.add('done')
+    b.textContent = 'Copied'
+    setTimeout(() => { b.classList.remove('done'); b.innerHTML = LINK_ICON }, 1500)
+  })
+  return b
+}
+
+function showHash() {
+  const li = document.getElementById(decodeURIComponent(location.hash.slice(1)))
+  if (!li) return
+  li.hidden = false
+  li.scrollIntoView({ block: 'center' })
+}
+
 function render(data) {
   const run = data.inProgress
   $('#meta').textContent = run
@@ -47,7 +77,7 @@ function render(data) {
   const rows = data.extensions.map(x => {
     const li = el('li', { id: x.id },
       el('div', { class: 'row' },
-        el('span', { class: 'name' }, x.name),
+        el('span', { class: 'name' }, x.name, copyButton(x)),
         el('span', { class: `status ${x.status}` }, el('span', { class: `dot ${x.status}` }), LABEL[x.status])),
       el('div', { class: 'sub muted small' },
         el('code', {}, x.id), el('span', {}, `v1.6.${x.versionCode}`), x.since ? el('span', {}, `since ${x.since}`) : ''),
@@ -84,7 +114,8 @@ function render(data) {
     if (e.key === 'Escape' && document.activeElement === $('#q')) { state.q = ''; $('#q').value = ''; apply() }
   })
   apply()
-  if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView({ block: 'center' })
+  if (location.hash) showHash()
+  window.addEventListener('hashchange', showHash)
 }
 
 fetch('status.json', { cache: 'no-cache' })
