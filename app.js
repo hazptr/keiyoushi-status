@@ -13,6 +13,7 @@ const norm = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').repl
 // One plain sentence per status, for people who don't care about the internals.
 const PLAIN_FAIL = {
   popular: 'Cant load its list of titles',
+  search: 'Search doesnt work',
   manga: 'Titles dont open',
   pages: 'Chapters dont open',
   images: 'Pages dont load',
