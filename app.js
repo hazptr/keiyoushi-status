@@ -43,7 +43,9 @@ const day = d => new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 's
 // One bar per run, oldest first; the newest is this run. Tap or hover a bar for its date and status.
 function runHistory(x, data) {
   const runs = (data.history?.runs || []).map((d, i) => [d, FROM_CODE[(data.history.ext[x.id] || '')[i]] || null])
-  runs.push([data.sweepDate, x.status])
+  // The newest bar is this run; once it's finished it's also in the history, so replace rather than add.
+  if (runs.length && runs[runs.length - 1][0] === data.sweepDate) runs[runs.length - 1] = [data.sweepDate, x.status]
+  else runs.push([data.sweepDate, x.status])
   const checked = runs.filter(([, st]) => st && st !== 'untestable')
   const working = checked.filter(([, st]) => st === 'pass').length
   const readout = el('span', { class: 'readout' })
