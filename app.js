@@ -50,7 +50,7 @@ function runHistory(x, data) {
   const show = ([d, st]) => { readout.textContent = `${day(d)}: ${st ? LABEL[st] : 'not checked'}` }
   const bars = el('div', { class: 'bars', role: 'list' }, ...runs.map(r => {
     const label = `${day(r[0])}: ${r[1] ? LABEL[r[1]] : 'not checked'}`
-    const b = el('span', { class: `bar ${r[1] || 'none'}`, role: 'listitem', tabindex: '0', title: label, 'aria-label': label })
+    const b = el('span', { class: `hbar ${r[1] || 'none'}`, role: 'listitem', tabindex: '0', title: label, 'aria-label': label })
     for (const ev of ['mouseenter', 'focus', 'click']) b.addEventListener(ev, () => show(r))
     return b
   }))
